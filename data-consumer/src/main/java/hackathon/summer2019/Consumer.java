@@ -1,19 +1,20 @@
 package hackathon.summer2019;
 
-import io.prometheus.client.Counter;
 import io.prometheus.client.exporter.HTTPServer;
+import java.util.logging.Logger;
 
 public class Consumer {
 
-  // https://github.com/prometheus/client_java
-  private static final Counter requests = Counter.build()
-      .name("requests_total").help("Total requests.").register();
+  private static final Logger LOGGER = Logger.getLogger(Consumer.class.getName());
+
+  private static final int GRPC_PORT = 50051;
+
+  private static final int PROMETHEUS_PORT = 9999;
 
   public static void main(String[] args) throws Exception {
-
-    
-
-    HTTPServer server = new HTTPServer(9999);
+    GrpcServer grpcServer = new GrpcServer(GRPC_PORT, new Processor());
+    LOGGER.info("prometheus server started, listening on " + PROMETHEUS_PORT);
+    HTTPServer prometheusServer = new HTTPServer(PROMETHEUS_PORT);
   }
 
 }
