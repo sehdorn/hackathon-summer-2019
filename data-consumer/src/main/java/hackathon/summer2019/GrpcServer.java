@@ -13,8 +13,8 @@ public class GrpcServer {
 
   private static final Logger LOGGER = Logger.getLogger(GrpcServer.class.getName());
 
-  private static final Counter REQUESTS = Counter.build()
-      .name("requests_total").help("Total requests.").register();
+  private static final Counter GRPC_REQUESTS = Counter.build()
+      .name("grpc_requests_total").help("Grpc total requests.").register();
 
   public GrpcServer(int port, Processor processor) throws IOException {
     ServerBuilder.forPort(port)
@@ -38,7 +38,7 @@ public class GrpcServer {
       DataResponse response = DataResponse.newBuilder().setMessage("done").build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
-      REQUESTS.inc();
+      GRPC_REQUESTS.inc();
     }
   }
 }
