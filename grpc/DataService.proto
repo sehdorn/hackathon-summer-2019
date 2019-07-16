@@ -1,0 +1,7 @@
+service DataService {
+  rpc SendData (stream String) returns (String);
+}
+
+message HelloResponse {
+  string reply = 1;
+}
