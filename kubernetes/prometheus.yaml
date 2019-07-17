@@ -1,0 +1,89 @@
+apiVersion: v1
+data:
+  prometheus.yml: |
+    # my global config
+    global:
+      scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+      evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+      # scrape_timeout is set to the global default (10s).
+
+    # Alertmanager configuration
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+    rule_files:
+    scrape_configs:
+    # 8888 jmx prometheus port, 9999 node prometheus port
+      - job_name: 'data-consumer-graalvm'
+        #scrape_timeout: 25s
+        #scrape_interval: 30s
+        static_configs:
+        - targets: ['data-consumer-graalvm.graal.svc.cluster.local:9999']
+      - job_name: 'data-consumer-jvm'
+        static_configs:
+        - targets: ['data-consumer-jvm.graal.svc.cluster.local:9999']
+kind: ConfigMap
+metadata:
+  name: prometheus-configmap
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  type: NodePort
+  ports:
+  - name: prometheus
+    port: 9090
+    nodePort: 30082
+  selector:
+    app: prometheus
+
+---
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      securityContext:
+        runAsUser: 65534
+      containers:
+      - name: prometheus
+        image: wharf.gaikai.org/lbachmann/prometheus:master
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9093
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-configmap
+          items:
+          - key: prometheus.yml
+            path: prometheus.yml
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: hardened
+                operator: In
+                values:
+                - "false"

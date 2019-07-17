@@ -1,0 +1,34 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: data-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-producer
+  template:
+    metadata:
+      labels:
+        app: data-producer
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: hardened
+                operator: NotIn
+                values:
+                - "true"
+      containers:
+      - name: data-producer
+        image: "wharf.gaikai.org/lbachmann/hackathon-data-producer-gentoo-jvm:0.0.1"
+        command: ["java"]
+        args: ["-jar", "-Xmx512m", "/tmp/data-producer.jar", "data-consumer-jvm", "data-consumer-graalvm"]
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 1
+            memory: 512Mi
+      restartPolicy: Always
