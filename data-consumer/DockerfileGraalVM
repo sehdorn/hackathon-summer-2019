@@ -1,0 +1,11 @@
+FROM wharf.gaikai.org/lbachmann/hackathon-alpine-graalvm:19.1.0
+
+COPY target/data-consumer.jar /tmp/data-consumer.jar
+
+CMD [ \
+  "java", \
+  "-jar", \
+  "-Xmx512m", \
+  "/tmp/data-consumer.jar" \
+]
+

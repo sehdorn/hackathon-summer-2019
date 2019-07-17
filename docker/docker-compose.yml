@@ -1,0 +1,22 @@
+version: '3'
+services:
+
+  alpine-graalvm:
+    build: alpine-graalvm/
+    image: wharf.gaikai.org/lbachmann/hackathon-alpine-graalvm:19.1.0
+
+  data-producer:
+    build: ../data-producer/
+    image: wharf.gaikai.org/lbachmann/hackathon-data-producer-gentoo-jvm:0.0.1
+
+  data-consumer-graalvm:
+    build:
+      context: ../data-consumer/
+      dockerfile: DockerfileGraalVM
+    image: wharf.gaikai.org/lbachmann/hackathon-data-consumer-alpine-graalvm:0.0.1
+
+  data-consumer-jvm:
+    build:
+      context: ../data-consumer/
+      dockerfile: DockerfileJVM
+    image: wharf.gaikai.org/lbachmann/hackathon-data-consumer-gentoo-jvm:0.0.1

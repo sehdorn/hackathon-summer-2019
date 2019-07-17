@@ -1,0 +1,12 @@
+FROM wharf.gaikai.org/cgei-base/jdk11-minimal:2019022801
+# run as nobody user
+USER 65534
+COPY target/data-consumer.jar /tmp/data-consumer.jar
+
+CMD [ \
+  "java", \
+  "-jar", \
+  "-Xmx512m", \
+  "/tmp/data-consumer.jar" \
+]
+
