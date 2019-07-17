@@ -32,9 +32,10 @@ public class Processor {
   private void objectify_String(String data){
     int count = 0;
     for (Character a : data.toCharArray()){
-      BigInteger bigNumber = new BigInteger(String.valueOf(a));
+      BigInteger bigNumber = new BigInteger(String.valueOf((int)a.charValue()));
       bigNumber.multiply((bigNumber != null) ? bigNumber : new BigInteger(new byte[]{01}));
     }
+    increase_gauge();
   }
 
   private void increase_gauge(){
