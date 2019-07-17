@@ -15,6 +15,6 @@ kubectl -n ${NAMESPACE} apply -f data-consumer-jvm.yaml
 kubectl -n ${NAMESPACE} apply -f prometheus.yaml
 kubectl -n ${NAMESPACE} apply -f grafana.yaml
 
-sleep 5
+sleep 10
 
-#kubectl -n ${NAMESPACE} apply -f data-producer.yaml
+kubectl -n ${NAMESPACE} apply -f data-producer.yaml
