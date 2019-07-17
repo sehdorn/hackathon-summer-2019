@@ -37,9 +37,11 @@ spec:
                 operator: NotIn
                 values:
                 - "true"
+      securityContext:
+        runAsUser: 65534
       containers:
       - name: data-consumer-jvm
-        image: "wharf.gaikai.org/lbachmann/hackathon-data-consumer-gentoo-jvm:0.0.1"
+        image: "wharf.gaikai.org/lbachmann/hackathon-data-consumer-alpine-jvm:0.0.1"
         command: ["java"]
         args: ["-jar", "-Xmx1024m", "/tmp/data-consumer.jar"]
         imagePullPolicy: IfNotPresent
