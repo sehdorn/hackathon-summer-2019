@@ -5,13 +5,10 @@ import io.prometheus.client.Gauge;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Summary;
+import java.nio.charset.StandardCharsets;
 
 import java.math.BigInteger;
 import java.util.logging.Logger;
-
-import io.prometheus.client.Gauge;
-import io.prometheus.client.Summary;
-
 
 public class Processor {
 
@@ -53,12 +50,12 @@ public class Processor {
     Cryptor cryptor = new Cryptor();
     byte[] iv = cryptor.getIV();
     byte[] key = cryptor.getKey();
-    String encoded = cryptor.encodeAES(data, key, iv);
-    String decoded = cryptor.decodeAES(data, key, iv);
-    if (data.equals(decoded)) {
-      LOGGER.info("successfully using crypto");
+    byte[] encoded = cryptor.encrypt(data.getBytes("UTF-8"), new String(key, "UTF-8"));
+    byte[] decoded = cryptor.decrypt(encoded, new String(key, "UTF-8"));
+    if (data.equals(new String(decoded))) {
+      //LOGGER.info("successfully using crypto");
     } else {
-      LOGGER.info("crypto is not working");
+      //LOGGER.info("crypto is not working");
     }
   }
 
