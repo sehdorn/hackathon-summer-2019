@@ -1,10 +1,7 @@
 package hackathon.summer2019;
 
-import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
-import io.prometheus.client.Gauge;
-import io.prometheus.client.Gauge;
-import io.prometheus.client.Summary;
+import io.prometheus.client.Histogram;
 import java.nio.charset.StandardCharsets;
 
 import java.math.BigInteger;
@@ -16,39 +13,48 @@ public class Processor {
 
   // https://github.com/prometheus/client_java
   private static final Gauge requests = Gauge.build()
-      .name("requests_total").help("Total requests.").register();
-  private static final Summary objectify_String_Duration = Summary.build()
-           .name("objectify_String_seconds").help("Duration of objectify_String in seconds.").register();
+      .name("method_calls_total").help("Amount of methods call from method \"processData(data)\"").register();
+  private static final Histogram objectifyString_Duration_Histogram = Histogram.build().buckets(0.000001,0.000005, 0.000006, 0.000007, 0.000008, 0.000009,  0.00001, 0.00005,  0.0001, 0.0005)
+           .name("objectify_String_Histogram_seconds").help("Duration of objectify_String in seconds by a histogram metric.").register();
 
-  private static final Summary useAES_Duration = Summary.build()
-            .name("useAES_seconds").help("Duration of useAES in seconds.").register();
+  private static final Histogram useAES_Duration_Histogram = Histogram.build().buckets(0.011, 0.012, 0.013, 0.014, 0.015, 0.016, 0.017, 0.018, 0.019, 0.02, 0.025, 0.03, 0.035)
+     .name("useAES_Duration_Histogram_seconds").help("Duration of useAES in seconds by a histogram metric.").register();
 
-  public void processData(String data) {
+   private void processAESRequest(String data) {
+     Histogram.Timer requestTimer = useAES_Duration_Histogram.startTimer();
+     try {
+         useAES(data);
+     } catch (Exception e) {
+       LOGGER.info("Encryption failed: " + e.getMessage());
+     } finally {
+       requestTimer.observeDuration();
+       increase_gauge();
+     }
+   }
 
-    Summary.Timer requestTimer = objectify_String_Duration.startTimer();
-    try{
+  private void processObjectifyStringRequest(String data) {
+    Histogram.Timer requestTimer = objectifyString_Duration_Histogram.startTimer();
+    try {
         objectify_String(data);
+    } catch (Exception e) {
+      LOGGER.info("Encryption failed: " + e.getMessage());
     } finally {
       requestTimer.observeDuration();
       increase_gauge();
     }
+  }
 
-    Summary.Timer aesTimer = useAES_Duration.startTimer();
-    try{
-        useAES(data);
-    } catch (Exception e) {
-      LOGGER.info("Encryption failed: " + e.getMessage());
-    } finally {
-      aesTimer.observeDuration();
-      increase_gauge();
-    }
 
+  public void processData(String data) {
+
+    processObjectifyStringRequest(data);
+
+    processAESRequest(data);
 
   }
 
   private void useAES(String data) throws Exception{
     Cryptor cryptor = new Cryptor();
-    byte[] iv = cryptor.getIV();
     byte[] key = cryptor.getKey();
     byte[] encoded = cryptor.encrypt(data.getBytes("UTF-8"), new String(key, "UTF-8"));
     byte[] decoded = cryptor.decrypt(encoded, new String(key, "UTF-8"));
@@ -60,19 +66,14 @@ public class Processor {
   }
 
   private void objectify_String(String data){
-    int count = 0;
     for (Character a : data.toCharArray()){
       BigInteger bigNumber = new BigInteger(String.valueOf((int)a.charValue()));
       bigNumber.multiply((bigNumber != null) ? bigNumber : new BigInteger(new byte[]{01}));
     }
-    increase_gauge();
   }
 
   private void increase_gauge(){
     requests.inc();
   }
 
-  private Gauge get_gauge(){
-    return requests;
-  }
 }
